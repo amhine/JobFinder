@@ -7,7 +7,6 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
   selector: 'app-register-form',
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './register-form.html',
-  styleUrl: './register-form.scss',
 })
 export class RegisterForm {
   @Output() formSubmit = new EventEmitter<any>()

@@ -10,7 +10,6 @@ import { RegisterForm } from './register-form/register-form';
   selector: 'app-register',
   imports: [CommonModule, RegisterForm, RouterLink],
   templateUrl: './register.html',
-  styleUrl: './register.scss',
 })
 export class Register {
   private authService = inject(AuthService);

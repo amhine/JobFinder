@@ -9,7 +9,6 @@ import { Observable } from 'rxjs';
   selector: 'app-header',
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './header.html',
-  styleUrl: './header.scss',
 })
 export class Header {
   authService = inject(AuthService);

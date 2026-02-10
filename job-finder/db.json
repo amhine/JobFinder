@@ -6,6 +6,13 @@
       "email": "nihadamhine@gmail.com",
       "password": "Nihad123",
       "id": 1
+    },
+    {
+      "firstName": "nahid",
+      "lastName": "amh",
+      "email": "nahid@gmail.com",
+      "password": "nahid123",
+      "id": 2
     }
   ],
   "favoritesOffers": [],
