@@ -20,7 +20,7 @@ export class JobList implements OnInit {
   private jobService = inject(JobService);
   private favoriteService = inject(FavoriteService);
 
-  jobs: JobWithFavorite[] = []; // دابا هادي غاتخدم
+  jobs: JobWithFavorite[] = [];
   loading: boolean = false;
   searchQuery: string = '';
   searchLocation: string = '';
@@ -35,10 +35,13 @@ export class JobList implements OnInit {
     this.loading = true;
     this.jobService.searchJobs(this.searchQuery, this.searchLocation, this.currentPage).subscribe({
       next: (response: any) => {
-        this.jobs = response.data.map((job: Job) => ({
+        const firstTenJobs = response.data.slice(0, 10);
+
+        this.jobs = firstTenJobs.map((job: Job) => ({
           ...job,
           isFavorite: this.favoriteService.isFavorite(job.slug)
         }));
+
         this.totalJobs = response.meta.total;
         this.loading = false;
       },
@@ -49,7 +52,6 @@ export class JobList implements OnInit {
     });
   }
 
-  // ✅ دابا هادي غاتخدم بلا خطأ
   toggleFavorite(job: JobWithFavorite) {
     job.isFavorite = !job.isFavorite;
     if (job.isFavorite) {
