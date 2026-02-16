@@ -1,28 +1,32 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { JobService } from '../../../core/services/job.service';
 import { Job } from '../../../core/models/job.model';
+import { FavoriteService } from '../../../core/services/favorite.service';
+
+// ✅ ضروري تزيدي هاد التعريف هنا باش TypeScript يعرف شنو هو JobWithFavorite
+interface JobWithFavorite extends Job {
+  isFavorite?: boolean;
+}
 
 @Component({
   selector: 'app-job-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    // JobItemComponent
-  ],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './job-list.html',
 })
 export class JobList implements OnInit {
-  allJobsFetched: Job[] = [];
-  jobs: Job[] = [];
+  private jobService = inject(JobService);
+  private favoriteService = inject(FavoriteService);
+
+  jobs: JobWithFavorite[] = []; // دابا هادي غاتخدم
   loading: boolean = false;
   searchQuery: string = '';
+  searchLocation: string = '';
   currentPage: number = 1;
   totalJobs: number = 0;
-
-  constructor(private jobService: JobService) { }
 
   ngOnInit() {
     this.loadJobs();
@@ -30,12 +34,14 @@ export class JobList implements OnInit {
 
   loadJobs() {
     this.loading = true;
-    this.jobService.searchJobs(this.searchQuery, this.currentPage).subscribe({
+    this.jobService.searchJobs(this.searchQuery, this.searchLocation, this.currentPage).subscribe({
       next: (response: any) => {
-        this.jobs = response.data;
+        this.jobs = response.data.map((job: Job) => ({
+          ...job,
+          isFavorite: this.favoriteService.isFavorite(job.slug)
+        }));
         this.totalJobs = response.meta.total;
         this.loading = false;
-        console.table(this.jobs)
       },
       error: (err) => {
         console.error('Erreur API:', err);
@@ -44,7 +50,15 @@ export class JobList implements OnInit {
     });
   }
 
-
+  // ✅ دابا هادي غاتخدم بلا خطأ
+  toggleFavorite(job: JobWithFavorite) {
+    job.isFavorite = !job.isFavorite;
+    if (job.isFavorite) {
+      this.favoriteService.addToFavorites(job);
+    } else {
+      this.favoriteService.removeFromFavorites(job.slug);
+    }
+  }
 
   onSearch() {
     this.currentPage = 1;

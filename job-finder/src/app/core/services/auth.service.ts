@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { User } from '../models/user.model';
-import { Observable, BehaviorSubject, tap, map } from 'rxjs';
+import { Observable, BehaviorSubject, tap, map, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -19,9 +19,25 @@ export class AuthService {
 
   constructor() {
     if (this.isBrowser) {
-      const user = this.getUserFromStorage();
-      this.currentUserSubject.next(user);
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        this.fetchUserById(userId).subscribe(user => {
+          this.currentUserSubject.next(user);
+        });
+      }
     }
+  }
+
+  private fetchUserById(id: string): Observable<User | null> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`).pipe(
+      map(user => {
+        if (user) {
+          const { password, ...userWithoutPassword } = user;
+          return userWithoutPassword as User;
+        }
+        return null;
+      })
+    );
   }
 
   register(user: Omit<User, 'id'>): Observable<User> {
@@ -37,8 +53,10 @@ export class AuthService {
         tap(users => {
           if (users.length > 0 && this.isBrowser) {
             const user = users[0];
-            localStorage.setItem('user', JSON.stringify(user));
-            this.currentUserSubject.next(user);
+            localStorage.setItem('userId', user.id.toString());
+
+            const { password, ...userWithoutPassword } = user;
+            this.currentUserSubject.next(userWithoutPassword as User);
           }
         }),
         map(users => users.length > 0)
@@ -47,7 +65,7 @@ export class AuthService {
 
   logout(): void {
     if (this.isBrowser) {
-      localStorage.removeItem('user');
+      localStorage.removeItem('userId');
     }
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
@@ -55,12 +73,6 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     if (!this.isBrowser) return false;
-    return !!localStorage.getItem('user');
-  }
-
-  private getUserFromStorage(): User | null {
-    if (!this.isBrowser) return null;
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return !!localStorage.getItem('userId');
   }
 }

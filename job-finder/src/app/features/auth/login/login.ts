@@ -27,7 +27,7 @@ export class Login {
       this.authService.login(credentials).subscribe({
         next: (isLoggedIn) => {
           if (isLoggedIn) {
-            this.router.navigate(['/home']);
+            this.router.navigate(['/jobs']);
           } else {
             this.errorMessage = "Email ou mot de passe incorrect.";
           }
