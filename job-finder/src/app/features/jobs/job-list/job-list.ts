@@ -6,7 +6,6 @@ import { JobService } from '../../../core/services/job.service';
 import { Job } from '../../../core/models/job.model';
 import { FavoriteService } from '../../../core/services/favorite.service';
 
-// ✅ ضروري تزيدي هاد التعريف هنا باش TypeScript يعرف شنو هو JobWithFavorite
 interface JobWithFavorite extends Job {
   isFavorite?: boolean;
 }
