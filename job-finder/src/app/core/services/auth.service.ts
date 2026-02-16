@@ -75,4 +75,12 @@ export class AuthService {
     if (!this.isBrowser) return false;
     return !!localStorage.getItem('userId');
   }
+  updateProfile(userId: string, data: Partial<User>): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${userId}`, data).pipe(
+      tap(updatedUser => {
+        const { password, ...userWithoutPassword } = updatedUser;
+        this.currentUserSubject.next(userWithoutPassword as User);
+      })
+    );
+  }
 }
