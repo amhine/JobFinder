@@ -1,1 +1,44 @@
-<p>favorite-list works!</p>
+<div class="space-y-6 p-6 bg-gray-50 min-h-screen">
+
+
+  <!-- Message si vide -->
+  <div *ngIf="favorites.length === 0" class="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+    <p class="text-gray-500 text-lg">Vous n'avez aucune offre en favoris pour le moment.</p>
+    <button routerLink="/jobs" class="mt-4 text-indigo-600 font-bold hover:underline">
+      Parcourir les offres
+    </button>
+  </div>
+
+  <!-- Grille des favoris -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let job of favorites" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col relative animate-fade-in">
+
+      <!-- Bouton Supprimer des favoris -->
+      <button (click)="removeFavorite(job.slug)" class="absolute top-4 right-4 p-2 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+          <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+        </svg>
+      </button>
+
+      <div class="flex-grow">
+        <div class="text-[11px] font-bold text-gray-400 uppercase mb-2">Sauvegardé</div>
+        <h3 class="text-lg font-bold text-gray-900 mb-1 pr-8">{{ job.title }}</h3>
+        <p class="text-indigo-600 font-semibold text-sm mb-3">{{ job.company_name }}</p>
+
+        <div class="flex items-center text-gray-400 text-xs mb-6">
+          <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          {{ job.location }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button [routerLink]="['/job', job.slug]" class="py-2 text-center border border-indigo-600 text-indigo-600 text-sm font-bold rounded-xl">
+          Détails
+        </button>
+        <a [href]="job.url" target="_blank" class="py-2 text-center bg-indigo-600 text-white text-sm font-bold rounded-xl">
+          Postuler
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

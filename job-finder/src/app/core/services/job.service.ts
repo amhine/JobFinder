@@ -11,11 +11,12 @@ export class JobService {
 
   constructor(private http: HttpClient) { }
 
-  searchJobs(location?: string, page: number = 1): Observable<any> {
+  searchJobs(search?: string, location?: string, page: number = 1): Observable<any> {
     let params = new HttpParams().set('page', page.toString());
-    if (location) {
-      params = params.set('location', location);
-    }
+
+    if (search) params = params.set('search', search);
+    if (location) params = params.set('location', location);
+
     return this.http.get<any>(this.apiUrl, { params });
   }
 }
