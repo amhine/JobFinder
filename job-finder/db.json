@@ -1,13 +1,6 @@
 {
   "users": [
     {
-      "firstName": "nihad",
-      "lastName": "amhine",
-      "email": "nihadamhine@gmail.com",
-      "password": "Nihad123",
-      "id": 1
-    },
-    {
       "firstName": "nahid",
       "lastName": "amh",
       "email": "nahid@gmail.com",

@@ -83,4 +83,11 @@ export class AuthService {
       })
     );
   }
+  deleteAccount(userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${userId}`).pipe(
+      tap(() => {
+        this.logout();
+      })
+    );
+  }
 }

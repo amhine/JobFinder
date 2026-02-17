@@ -1,8 +1,9 @@
-import { Component , OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FavoriteService } from '../../../core/services/favorite.service';
-
+import { Store } from '@ngrx/store';
+import { selectFavorites } from '../../../core/store/selectors/favorite.selectors';
+import { FavoriteActions } from '../../../core/store/actions/favorite.actions';
 
 @Component({
   selector: 'app-favorite-list',
@@ -11,20 +12,20 @@ import { FavoriteService } from '../../../core/services/favorite.service';
   templateUrl: './favorite-list.html',
 })
 export class FavoriteList implements OnInit {
-  favorites: any[] = [];
-
-  constructor(private FavoriteService: FavoriteService) {}
+  private store = inject(Store);
+  favorites$ = this.store.select(selectFavorites);
 
   ngOnInit() {
-    this.loadFavorites();
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      this.store.dispatch(FavoriteActions.loadFavorites({ userId: user.id }));
+    }
   }
 
-  loadFavorites() {
-    this.favorites = this.FavoriteService.getFavorites();
-  }
-
-  removeFavorite(slug: string) {
-    this.FavoriteService.removeFromFavorites(slug);
-    this.loadFavorites();
+  deleteFav(id: number) {
+    if (confirm('Bghiti t-suprimer had l-offre men favoris?')) {
+      this.store.dispatch(FavoriteActions.removeFavorite({ id }));
+    }
   }
 }
