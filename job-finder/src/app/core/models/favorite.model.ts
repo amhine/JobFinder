@@ -6,6 +6,7 @@ export interface FavoriteOffer {
   company: string;
   location: string;
   url: string;
-  description?: string;
-  created_at?: number;
+  description: string;
+  created_at: number;
+  tags: string[];
 }

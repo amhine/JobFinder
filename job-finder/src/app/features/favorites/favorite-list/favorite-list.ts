@@ -1,6 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core'; import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { selectFavorites } from '../../../core/store/selectors/favorite.selectors';
 import { FavoriteActions } from '../../../core/store/actions/favorite.actions';
@@ -13,13 +13,15 @@ import { FavoriteActions } from '../../../core/store/actions/favorite.actions';
 })
 export class FavoriteList implements OnInit {
   private store = inject(Store);
+  private platformId = inject(PLATFORM_ID);
   favorites$ = this.store.select(selectFavorites);
 
   ngOnInit() {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      this.store.dispatch(FavoriteActions.loadFavorites({ userId: user.id }));
+    if (isPlatformBrowser(this.platformId)) {
+      const userStr = localStorage.getItem('userId');
+      if (userStr) {
+        this.store.dispatch(FavoriteActions.loadFavorites({ userId: userStr }));
+      }
     }
   }
 
