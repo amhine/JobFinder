@@ -1,10 +1,15 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { JobService } from '../../../core/services/job.service';
 import { Job } from '../../../core/models/job.model';
-import { FavoriteService } from '../../../core/services/favorite.service';
+import { FavoriteOffer } from '../../../core/models/favorite.model';
+import { FavoriteActions } from '../../../core/store/actions/favorite.actions';
+import { selectFavorites } from '../../../core/store/selectors/favorite.selectors';
 
 interface JobWithFavorite extends Job {
   isFavorite?: boolean;
@@ -17,10 +22,13 @@ interface JobWithFavorite extends Job {
   templateUrl: './job-list.html',
 })
 export class JobList implements OnInit {
+  private store = inject(Store);
   private jobService = inject(JobService);
-  private favoriteService = inject(FavoriteService);
-
+  private platformId = inject(PLATFORM_ID);
+  private router = inject(Router);
   jobs: JobWithFavorite[] = [];
+  favoritesFromStore: FavoriteOffer[] = [];
+
   loading: boolean = false;
   searchQuery: string = '';
   searchLocation: string = '';
@@ -29,20 +37,32 @@ export class JobList implements OnInit {
 
   ngOnInit() {
     this.loadJobs();
+
+    if (isPlatformBrowser(this.platformId)) {
+      const userId = localStorage.getItem('userId');
+
+      if (userId) {
+        this.store.dispatch(FavoriteActions.loadFavorites({ userId }));
+
+        this.store.select(selectFavorites).subscribe((favs: FavoriteOffer[]) => {
+          this.favoritesFromStore = favs;
+          this.updateJobsFavoriteStatus();
+        });
+      }
+    }
   }
 
   loadJobs() {
     this.loading = true;
     this.jobService.searchJobs(this.searchQuery, this.searchLocation, this.currentPage).subscribe({
       next: (response: any) => {
-        const firstTenJobs = response.data.slice(0, 10);
-
-        this.jobs = firstTenJobs.map((job: Job) => ({
+        const jobData = response.data || response;
+        this.jobs = jobData.slice(0, 10).map((job: Job) => ({
           ...job,
-          isFavorite: this.favoriteService.isFavorite(job.slug)
+          isFavorite: false
         }));
-
-        this.totalJobs = response.meta.total;
+        this.updateJobsFavoriteStatus();
+        this.totalJobs = response.meta?.total || jobData.length;
         this.loading = false;
       },
       error: (err) => {
@@ -52,15 +72,48 @@ export class JobList implements OnInit {
     });
   }
 
-  toggleFavorite(job: JobWithFavorite) {
-    job.isFavorite = !job.isFavorite;
-    if (job.isFavorite) {
-      this.favoriteService.addToFavorites(job);
-    } else {
-      this.favoriteService.removeFromFavorites(job.slug);
-    }
+  updateJobsFavoriteStatus() {
+    if (!this.jobs.length) return;
+    this.jobs = this.jobs.map(job => ({
+      ...job,
+      isFavorite: this.favoritesFromStore.some(f => f.offerId === job.slug)
+    }));
   }
 
+  toggleFavorite(job: Job) {
+    if (isPlatformBrowser(this.platformId)) {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert("Veuillez vous connecter pour ajouter des favoris");
+        return;
+      }
+      const user = userId;
+
+      const favoriteRecord = this.favoritesFromStore.find(f => f.offerId === job.slug);
+
+      if (favoriteRecord) {
+        if (favoriteRecord.id) {
+          this.store.dispatch(FavoriteActions.removeFavorite({ id: favoriteRecord.id }));
+        }
+      } else {
+        const favoriteData: Omit<FavoriteOffer, 'id'> = {
+          userId: user,
+          offerId: job.slug,
+          title: job.title,
+          company: job.company_name,
+          location: job.location,
+          created_at:job.created_at,
+          description:job.description,
+          tags: job.tags,
+          url: job.url || ''
+        };
+
+        this.store.dispatch(FavoriteActions.addFavorite({ favorite: favoriteData }));
+
+        this.router.navigate(['/favorites']);
+      }
+    }
+  }
   onSearch() {
     this.currentPage = 1;
     this.loadJobs();

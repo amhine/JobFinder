@@ -1,8 +1,9 @@
-import { Component , OnInit} from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core'; import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FavoriteService } from '../../../core/services/favorite.service';
-
+import { isPlatformBrowser } from '@angular/common';
+import { Store } from '@ngrx/store';
+import { selectFavorites } from '../../../core/store/selectors/favorite.selectors';
+import { FavoriteActions } from '../../../core/store/actions/favorite.actions';
 
 @Component({
   selector: 'app-favorite-list',
@@ -11,20 +12,22 @@ import { FavoriteService } from '../../../core/services/favorite.service';
   templateUrl: './favorite-list.html',
 })
 export class FavoriteList implements OnInit {
-  favorites: any[] = [];
-
-  constructor(private FavoriteService: FavoriteService) {}
+  private store = inject(Store);
+  private platformId = inject(PLATFORM_ID);
+  favorites$ = this.store.select(selectFavorites);
 
   ngOnInit() {
-    this.loadFavorites();
+    if (isPlatformBrowser(this.platformId)) {
+      const userStr = localStorage.getItem('userId');
+      if (userStr) {
+        this.store.dispatch(FavoriteActions.loadFavorites({ userId: userStr }));
+      }
+    }
   }
 
-  loadFavorites() {
-    this.favorites = this.FavoriteService.getFavorites();
-  }
-
-  removeFavorite(slug: string) {
-    this.FavoriteService.removeFromFavorites(slug);
-    this.loadFavorites();
+  deleteFav(id: number) {
+    if (confirm('Bghiti t-suprimer had l-offre men favoris?')) {
+      this.store.dispatch(FavoriteActions.removeFavorite({ id }));
+    }
   }
 }

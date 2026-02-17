@@ -1,42 +1,22 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { Job } from '../models/job.model';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { FavoriteOffer } from '../models/favorite.model';
 
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class FavoriteService {
-  private platformId = inject(PLATFORM_ID);
-  private readonly STORAGE_KEY = 'job_favorites';
+  private http = inject(HttpClient);
+  private apiUrl = 'http://localhost:3000/favoritesOffers';
 
-  getFavorites(): any[] {
-    if (isPlatformBrowser(this.platformId)) {
-      const data = localStorage.getItem(this.STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
-    }
-    return [];
+  getFavorites(userId: string | number): Observable<FavoriteOffer[]> {
+    return this.http.get<FavoriteOffer[]>(`${this.apiUrl}?userId=${userId}`);
   }
 
-  addToFavorites(job: any): void {
-    if (isPlatformBrowser(this.platformId)) {
-      const favorites = this.getFavorites();
-      if (!favorites.some(f => f.slug === job.slug)) {
-        favorites.push(job);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
-      }
-    }
+  addFavorite(favorite: Omit<FavoriteOffer, 'id'>): Observable<FavoriteOffer> {
+    return this.http.post<FavoriteOffer>(this.apiUrl, favorite);
   }
 
-  removeFromFavorites(slug: string): void {
-    if (isPlatformBrowser(this.platformId)) {
-      let favorites = this.getFavorites();
-      favorites = favorites.filter(f => f.slug !== slug);
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
-    }
-  }
-
-  isFavorite(slug: string): boolean {
-    return this.getFavorites().some(f => f.slug === slug);
+  removeFavorite(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

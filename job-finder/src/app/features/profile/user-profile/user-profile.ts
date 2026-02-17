@@ -71,4 +71,20 @@ export class UserProfile implements OnInit {
       });
     }
   }
+  onDeleteAccount() {
+    const confirmation = confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.');
+
+    if (confirmation && this.userId) {
+      this.loading = true;
+      this.authService.deleteAccount(this.userId).subscribe({
+        next: () => {
+          console.log('Compte supprimé');
+        },
+        error: (err) => {
+          this.message = { type: 'error', text: 'Erreur lors de la suppression du compte.' };
+          this.loading = false;
+        }
+      });
+    }
+  }
 }
