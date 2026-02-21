@@ -10,11 +10,8 @@ import { of } from 'rxjs';
 import { Job } from '../../../core/models/job.model';
 import { FavoriteOffer } from '../../../core/models/favorite.model';
 import { Application } from '../../../core/models/application.model';
-
 import { JobService } from '../../../core/services/job.service';
-import { FavoriteService } from '../../../core/services/favorite.service';
 import { ApplicationService } from '../../../core/services/application.service';
-
 import { FavoriteActions } from '../../../core/store/actions/favorite.actions';
 import { selectFavorites } from '../../../core/store/selectors/favorite.selectors';
 
@@ -35,24 +32,31 @@ export class JobList implements OnInit {
   private router = inject(Router);
   private applicationService = inject(ApplicationService);
 
+  allJobs: JobWithFavorite[] = [];
+  filteredJobs: JobWithFavorite[] = [];
   jobs: JobWithFavorite[] = [];
+
   favoritesFromStore: FavoriteOffer[] = [];
 
-  loading: boolean = false;
-  searchQuery: string = '';
-  searchLocation: string = '';
-  currentPage: number = 1;
-  totalJobs: number = 0;
+  loading = false;
+  searchQuery = '';
+  searchLocation = '';
+
+  apiPage = 1;
+  localPage = 1;
+  localPageSize = 10;
+
+  get totalLocalPages(): number {
+    return Math.ceil(this.filteredJobs.length / this.localPageSize);
+  }
 
   ngOnInit() {
     this.loadJobs();
 
     if (isPlatformBrowser(this.platformId)) {
       const userId = localStorage.getItem('userId');
-
       if (userId) {
         this.store.dispatch(FavoriteActions.loadFavorites({ userId }));
-
         this.store.select(selectFavorites).subscribe((favs: FavoriteOffer[]) => {
           this.favoritesFromStore = favs;
           this.updateJobsFavoriteStatus();
@@ -64,130 +68,131 @@ export class JobList implements OnInit {
   loadJobs() {
     this.loading = true;
 
-    this.jobService.searchJobs(this.searchQuery, this.searchLocation, this.currentPage).pipe(
-      timeout(5000), // 👈 Ila فات 5 d-thwani o majatch data, ghadi i-t-7iyd loading
+    this.jobService.getJobs(this.apiPage).pipe(
+      timeout(15000),
       catchError(err => {
-        console.error('API t-3ttlat bzaf aw fiha error');
-        return of({ data: [], meta: { total: 0 } }); // Rjje3 array khawi
+        console.error('Erreur API:', err);
+        return of({ data: [], meta: { total: 0 } });
       }),
-      finalize(() => this.loading = false) // 👈 Darori had l-stter: kiy-7iyd loading f ga3 l-7alat
+      finalize(() => this.loading = false)
     ).subscribe({
       next: (response: any) => {
         const jobData = response.data || response;
-        this.jobs = jobData.slice(0, 10).map((job: any) => ({
+        this.allJobs = jobData.map((job: any) => ({
           ...job,
           isFavorite: this.favoritesFromStore.some(f => f.offerId === job.slug)
         }));
-        this.totalJobs = response.meta?.total || jobData.length;
+        this.applyFilter();
       }
     });
   }
 
+  applyFilter() {
+    const query = this.searchQuery.toLowerCase().trim();
+    const location = this.searchLocation.toLowerCase().trim();
+
+    this.filteredJobs = this.allJobs.filter(job => {
+      const matchQuery = !query ||
+        job.title.toLowerCase().includes(query) ||
+        job.company_name.toLowerCase().includes(query);
+
+      const matchLocation = !location ||
+        job.location.toLowerCase().includes(location);
+
+      return matchQuery && matchLocation;
+    });
+
+    this.localPage = 1;
+    this.updateLocalPage();
+  }
+
+  updateLocalPage() {
+    const start = (this.localPage - 1) * this.localPageSize;
+    const end = start + this.localPageSize;
+    this.jobs = this.filteredJobs.slice(start, end);
+  }
+
+  onSearch() {
+    this.applyFilter();
+  }
+
+  nextPage() {
+    if (this.localPage < this.totalLocalPages) {
+      this.localPage++;
+      this.updateLocalPage();
+    } else {
+      this.apiPage++;
+      this.localPage = 1;
+      this.loadJobs();
+    }
+  }
+
+  prevPage() {
+    if (this.localPage > 1) {
+      this.localPage--;
+      this.updateLocalPage();
+    } else if (this.apiPage > 1) {
+      this.apiPage--;
+      this.loadJobs();
+    }
+  }
+
   updateJobsFavoriteStatus() {
-    if (!this.jobs.length) return;
-    this.jobs = this.jobs.map(job => ({
+    this.allJobs = this.allJobs.map(job => ({
       ...job,
       isFavorite: this.favoritesFromStore.some(f => f.offerId === job.slug)
     }));
+    this.applyFilter();
   }
 
   toggleFavorite(job: Job) {
     if (isPlatformBrowser(this.platformId)) {
       const userId = localStorage.getItem('userId');
-      if (!userId) {
-        alert("Veuillez vous connecter pour ajouter des favoris");
-        return;
-      }
+      if (!userId) { alert("Veuillez vous connecter pour ajouter des favoris"); return; }
 
       const favoriteRecord = this.favoritesFromStore.find(f => f.offerId === job.slug);
-
-      if (favoriteRecord) {
-        if (favoriteRecord.id) {
-          this.store.dispatch(FavoriteActions.removeFavorite({ id: favoriteRecord.id }));
-        }
+      if (favoriteRecord?.id) {
+        this.store.dispatch(FavoriteActions.removeFavorite({ id: favoriteRecord.id }));
       } else {
-        const favoriteData: Omit<FavoriteOffer, 'id'> = {
-          userId: userId,
-          offerId: job.slug,
-          title: job.title,
-          company: job.company_name,
-          location: job.location,
-          created_at: job.created_at,
-          description: job.description,
-          tags: job.tags,
-          url: job.url || ''
-        };
-
-        this.store.dispatch(FavoriteActions.addFavorite({ favorite: favoriteData }));
+        this.store.dispatch(FavoriteActions.addFavorite({
+          favorite: {
+            userId, offerId: job.slug, title: job.title,
+            company: job.company_name, location: job.location,
+            created_at: job.created_at, description: job.description,
+            tags: job.tags, url: job.url || ''
+          }
+        }));
         this.router.navigate(['/favorites']);
       }
-    }
-  }
-
-  onSearch() {
-    this.currentPage = 1;
-    this.loadJobs();
-  }
-
-  nextPage() {
-    this.currentPage++;
-    this.loadJobs();
-  }
-
-  prevPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadJobs();
     }
   }
 
   applyToJob(job: Job) {
     if (isPlatformBrowser(this.platformId)) {
       const userId = localStorage.getItem('userId');
-      if (!userId) {
-        alert("Veuillez vous connecter pour postuler");
-        return;
-      }
+      if (!userId) { alert("Veuillez vous connecter pour postuler"); return; }
 
-      // 1️⃣ Qleb f l-API wach had l-user déjà postula l-had l-offre b-debt
       this.applicationService.getApplications(userId).subscribe({
         next: (existingApps) => {
-          // Check wach l-offerId dyal had l-job déjà f l-list dyal l-user
-          const alreadyApplied = existingApps.some(app => app.offerId === job.slug);
-
-          if (alreadyApplied) {
-            // ❌ Ila déjà kayn, n-3tiwh alert o n-حبسو
-            alert("Vous avez déjà ajouté cette offre à votre suivi de candidatures !");
-          } else {
-            // ✅ Ila makanche, n-zidouh
-            const applicationData: Application = {
-              userId: userId,
-              offerId: job.slug,
-              apiSource: 'Arbeitnow',
-              title: job.title,
-              company: job.company_name,
-              location: job.location,
-              url: job.url,
-              status: 'en_attente',
-              notes: '',
-              dateAdded: new Date().toISOString()
-            };
-
-            this.applicationService.addApplication(applicationData).subscribe({
-              next: () => {
-                alert("Candidature ajoutée au suivi !");
-                this.router.navigate(['/applications']);
-              },
-              error: (err) => alert("Erreur lors de l'ajout")
-            });
+          if (existingApps.some(app => app.offerId === job.slug)) {
+            alert("Vous avez déjà ajouté cette offre !");
+            return;
           }
-        },
-        error: (err) => {
-          console.error("Erreur lors de la vérification:", err);
+          this.applicationService.addApplication({
+            userId, offerId: job.slug, apiSource: 'Arbeitnow',
+            title: job.title, company: job.company_name,
+            location: job.location, url: job.url,
+            status: 'en_attente', notes: '',
+            dateAdded: new Date().toISOString()
+          }).subscribe({
+            next: () => {
+              alert("Candidature ajoutée !");
+              setTimeout(() => this.router.navigate(['/applications']), 300);
+            },
+            error: () => alert("Erreur lors de l'ajout")
+          });
         }
       });
     }
   }
-
-
 }

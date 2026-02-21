@@ -1,5 +1,4 @@
 <div class="p-6 bg-gray-50 min-h-screen">
-  <h1 class="text-2xl font-bold mb-6">Suivi de mes candidatures</h1>
 
   <!-- Loader -->
   <div *ngIf="loading" class="flex flex-col items-center justify-center py-20">
@@ -30,7 +29,8 @@
             <option value="accepté">✅ Accepté</option>
             <option value="refusé">❌ Refusé</option>
           </select>
-          <button (click)="deleteApp(app.id!)" class="text-red-400 hover:text-red-600 text-[11px] font-bold uppercase tracking-tight">
+          <button (click)="deleteApp(app.id)"
+                  class="text-red-400 hover:text-red-600 text-[11px] font-bold uppercase tracking-tight">
             Supprimer
           </button>
         </div>
