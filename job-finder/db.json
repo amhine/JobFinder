@@ -13,6 +13,13 @@
       "email": "test@gmail.com",
       "password": "test123",
       "id": 4
+    },
+    {
+      "firstName": "nihad",
+      "lastName": "amh",
+      "email": "jihew55663@cameltok.com",
+      "password": "nihad123",
+      "id": 5
     }
   ],
   "favoritesOffers": [
@@ -47,32 +54,6 @@
   ],
   "applications": [
     {
-      "userId": "2",
-      "offerId": "personalsachbearbeiter-automobillogistik-wolfsburg-294191",
-      "apiSource": "Arbeitnow",
-      "title": "Personalsachbearbeiter (m/w/d) Automobillogistik",
-      "company": "DP World Company",
-      "location": "Wolfsburg",
-      "url": "https://www.arbeitnow.com/jobs/companies/dp-world-company/personalsachbearbeiter-automobillogistik-wolfsburg-294191",
-      "status": "en_attente",
-      "notes": "",
-      "dateAdded": "2026-02-18T18:50:28.052Z",
-      "id": 1
-    },
-    {
-      "userId": "2",
-      "offerId": "personalsachbearbeiter-automobillogistik-wolfsburg-294191",
-      "apiSource": "Arbeitnow",
-      "title": "Personalsachbearbeiter (m/w/d) Automobillogistik",
-      "company": "DP World Company",
-      "location": "Wolfsburg",
-      "url": "https://www.arbeitnow.com/jobs/companies/dp-world-company/personalsachbearbeiter-automobillogistik-wolfsburg-294191",
-      "status": "en_attente",
-      "notes": "",
-      "dateAdded": "2026-02-18T18:52:07.667Z",
-      "id": 2
-    },
-    {
       "userId": "4",
       "offerId": "initiativbewerbung-eislingen-356653",
       "apiSource": "Arbeitnow",
@@ -80,10 +61,49 @@
       "company": "machinetalk GmbH",
       "location": "Eislingen",
       "url": "https://www.arbeitnow.com/jobs/companies/machinetalk-gmbh/initiativbewerbung-eislingen-356653",
-      "status": "accepté",
+      "status": "en_attente",
       "notes": "",
-      "dateAdded": "2026-02-18T19:02:46.502Z",
+      "dateAdded": "2026-02-21T00:02:42.638Z",
+      "id": 1
+    },
+    {
+      "userId": "4",
+      "offerId": "public-relations-consultant-berlin-185375",
+      "apiSource": "Arbeitnow",
+      "title": "Public Relations Consultant (w/m/d)",
+      "company": "Storymachine GmbH",
+      "location": "Berlin",
+      "url": "https://www.arbeitnow.com/jobs/companies/storymachine-gmbh/public-relations-consultant-berlin-185375",
+      "status": "en_attente",
+      "notes": "",
+      "dateAdded": "2026-02-21T00:09:21.033Z",
       "id": 3
+    },
+    {
+      "userId": "4",
+      "offerId": "head-of-accounting-berlin-98380",
+      "apiSource": "Arbeitnow",
+      "title": "Head of Accounting (m/w/d)",
+      "company": "Yoummday",
+      "location": "Berlin",
+      "url": "https://www.arbeitnow.com/jobs/companies/yoummday/head-of-accounting-berlin-98380",
+      "status": "en_attente",
+      "notes": "",
+      "dateAdded": "2026-02-21T00:10:07.251Z",
+      "id": 4
+    },
+    {
+      "userId": "2",
+      "offerId": "ausbildung-zum-zur-fachinformatiker-in-fur-systemintegration-berlin-208435",
+      "apiSource": "Arbeitnow",
+      "title": "Ausbildung zum/zur Fachinformatiker/in für Systemintegration (m/w/d)",
+      "company": "YOC AG",
+      "location": "Berlin",
+      "url": "https://www.arbeitnow.com/jobs/companies/yoc-ag/ausbildung-zum-zur-fachinformatiker-in-fur-systemintegration-berlin-208435",
+      "status": "en_attente",
+      "notes": "",
+      "dateAdded": "2026-02-21T00:13:04.930Z",
+      "id": 8
     }
   ]
 }

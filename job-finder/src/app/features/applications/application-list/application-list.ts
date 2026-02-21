@@ -1,13 +1,12 @@
-import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ApplicationService } from '../../../core/services/application.service';
 import { Application } from '../../../core/models/application.model';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-
-// ✅ HADOU HOUMA L-IMPORTS LI KANOU KHASSIN:
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { timeout, finalize, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-application-list',
@@ -18,26 +17,41 @@ import { of } from 'rxjs';
 export class ApplicationList implements OnInit {
   private appService = inject(ApplicationService);
   private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   applications: Application[] = [];
   loading = true;
 
   ngOnInit() {
+    this.loadUserApplications();
+
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.loadUserApplications();
+    });
+  }
+
+  loadUserApplications() {
     if (isPlatformBrowser(this.platformId)) {
       const userId = localStorage.getItem('userId');
       if (userId) {
+        this.loading = true;
         this.appService.getApplications(userId).pipe(
-          timeout(5000), // Stop l-request ila t-3ttlat ktar men 5s
-          catchError((err: any) => {
-            console.error('Mouchkil f l-API aw Timeout:', err);
-            return of([] as Application[]); // Rjje3 array khawi f l-error
-          }),
-          finalize(() => this.loading = false) // Ḥiyd loading darori f l-akhir
-        ).subscribe((data: Application[]) => {
+          timeout(5000),
+          catchError(() => of([])),
+          finalize(() => {
+            this.loading = false;
+            this.cdr.detectChanges();
+          })
+        ).subscribe(data => {
           this.applications = data;
+          this.cdr.detectChanges();
         });
       } else {
         this.loading = false;
+        this.cdr.detectChanges();
       }
     } else {
       this.loading = false;
@@ -58,10 +72,19 @@ export class ApplicationList implements OnInit {
     }
   }
 
-  deleteApp(id: number) {
+  deleteApp(id: number | undefined) {
+    if (!id) return;
+
     if (confirm("Supprimer ce suivi ?")) {
-      this.appService.deleteApplication(id).subscribe(() => {
-        this.applications = this.applications.filter(a => a.id !== id);
+      this.appService.deleteApplication(id).subscribe({
+        next: () => {
+          this.applications = this.applications.filter(a => a.id !== id);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error("Erreur lors de la suppression:", err);
+          alert("Erreur lors de la suppression");
+        }
       });
     }
   }

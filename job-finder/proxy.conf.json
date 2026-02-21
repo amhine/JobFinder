@@ -1,0 +1,11 @@
+{
+  "/api-proxy": {
+    "target": "https://www.arbeitnow.com",
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api-proxy": ""
+    },
+    "secure": true,
+    "logLevel": "debug"
+  }
+}

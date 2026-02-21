@@ -1,13 +1,11 @@
 <nav class="bg-gray-800 text-white p-4">
   <div class="container mx-auto flex justify-between items-center">
-    <!-- Logo -->
+
     <a routerLink="/" class="text-xl font-bold">JobFinder</a>
 
     <div class="flex space-x-4 items-center">
-      <!-- Liens Publics -->
       <a routerLink="/jobs" routerLinkActive="text-indigo-400" class="hover:text-gray-300">Offres</a>
 
-      <!-- Liens Connectés (Utilisation du Pipe Async) -->
       <ng-container *ngIf="currentUser$ | async as user; else guestTemplate">
         <a routerLink="/favorites" routerLinkActive="text-indigo-400" class="hover:text-gray-300">Favoris</a>
         <a routerLink="/applications" routerLinkActive="text-indigo-400" class="hover:text-gray-300">Candidatures</a>
@@ -15,13 +13,11 @@
           Profil ({{ user.firstName }})
         </a>
 
-        <!-- Bouton Logout -->
         <button (click)="logout()" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700 text-sm">
           Déconnexion
         </button>
       </ng-container>
 
-      <!-- Template Invité (Non connecté) -->
       <ng-template #guestTemplate>
         <a routerLink="/login" routerLinkActive="text-indigo-400" class="hover:text-gray-300">Connexion</a>
         <a routerLink="/register" class="bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-700">Inscription</a>
